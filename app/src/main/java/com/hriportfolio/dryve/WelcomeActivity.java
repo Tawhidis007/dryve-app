@@ -14,6 +14,7 @@ import com.hriportfolio.dryve.Driver.DriverLoginActivity;
 
 public class WelcomeActivity extends AppCompatActivity {
 
+    //
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
