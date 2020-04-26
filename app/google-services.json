@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "313338433287",
+    "firebase_url": "https://dryveapp-ab0a9.firebaseio.com",
+    "project_id": "dryveapp-ab0a9",
+    "storage_bucket": "dryveapp-ab0a9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313338433287:android:8efba990cc7ea7b6757fa2",
+        "android_client_info": {
+          "package_name": "com.hriportfolio.dryve"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "313338433287-tj4alrr3234oig6vv8n9ge13guafmdi2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hriportfolio.dryve",
+            "certificate_hash": "a977fd6a61a233c66bc657141fbe22c9347dd248"
+          }
+        },
+        {
+          "client_id": "313338433287-8u7aco59b4b63jhbqtuieb2mnsqvv4tc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTWsN8S2MEivs8Yrn8CQP0KMEJIJklafY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "313338433287-8u7aco59b4b63jhbqtuieb2mnsqvv4tc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
