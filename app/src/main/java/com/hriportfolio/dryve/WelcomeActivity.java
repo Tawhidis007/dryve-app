@@ -27,10 +27,6 @@ public class WelcomeActivity extends AppCompatActivity {
     void customer_button_click(){
         Intent customerIntent = new Intent(WelcomeActivity.this, CustomerLoginActivity.class);
         startActivity(customerIntent);
-        Log.d("Hello","d");
-        Log.d("Hello","d");
-        Log.d("Hello","d");
-        Log.d("Hello","d");
 
     }
     @OnClick(R.id.driver_button)
