@@ -31,7 +31,7 @@ public class WelcomeActivity extends AppCompatActivity {
         Log.d("Hello","d");
         Log.d("Hello","d");
         Log.d("Hello","d");
-        Log.d("Hello","d");
+
     }
     @OnClick(R.id.driver_button)
     void driver_button_click(){
