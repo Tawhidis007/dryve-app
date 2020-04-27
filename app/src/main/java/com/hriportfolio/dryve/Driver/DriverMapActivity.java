@@ -3,12 +3,14 @@ package com.hriportfolio.dryve.Driver;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
 import android.content.Intent;
@@ -16,8 +18,11 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.MenuInflater;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -45,6 +50,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hriportfolio.dryve.R;
 import com.hriportfolio.dryve.SettingsActivity;
 import com.hriportfolio.dryve.WelcomeActivity;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -56,6 +62,24 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     @BindView(R.id.driver_menu_button)
     ImageButton driver_menu_button;
 
+    @BindView(R.id.driver_first_line)
+    TextView driver_first_line;
+    @BindView(R.id.driver_second_line)
+    TextView driver_second_line;
+
+    @BindView(R.id.customer_name_text)
+    TextView customer_name_text;
+    @BindView(R.id.customer_phone_text)
+    TextView customer_phone_text;
+    @BindView(R.id.customer_found_card)
+    CardView customer_found_card;
+    @BindView(R.id.call_customer_iv)
+    ImageView call_customer_iv;
+    @BindView(R.id.customer_profile_image)
+    CircleImageView customer_profile_image;
+
+
+
     final static int REQUEST_CODE = 1;
     private GoogleMap mMap;
     GoogleApiClient googleApiClient;
@@ -65,6 +89,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     private FirebaseUser currentUser;
     private boolean driverLogoutStatus = false;
     private String driverId, customerId="";
+    private String naam = "";
 
     private DatabaseReference assignedCustomerRef;
     private DatabaseReference assignedCustomerPickUpRef;
@@ -86,6 +111,11 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 .findFragmentById(R.id.map);
         ButterKnife.bind(this);
         checkLocationPermission();
+        if(getIntent().getStringExtra("name")!=null){
+             naam =  getIntent().getStringExtra("name");
+            driver_first_line.setText("Hi "+naam+"!");
+            driver_second_line.setText("Waiting for customers..");
+        }
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
@@ -102,6 +132,9 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 if (dataSnapshot.exists()) {
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickUpLocation();
+
+                    customer_found_card.setVisibility(View.VISIBLE);
+                    getAssignedCustomerInformation();
                 }else{
                     customerId = "";
                     if(pickUpMarker!=null){
@@ -110,6 +143,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                     if(assignedCustomerPickUpRefListener!=null){
                         assignedCustomerPickUpRef.removeEventListener(assignedCustomerPickUpRefListener);
                     }
+                    customer_found_card.setVisibility(View.GONE);
                 }
             }
 
@@ -275,7 +309,11 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
 
-                String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                String userID="";
+                if(FirebaseAuth.getInstance().getCurrentUser().getUid()!=null){
+                     userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                }
+                //String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 DatabaseReference driverAvailabilityRef = FirebaseDatabase.getInstance()
                         .getReference().child("Drivers Available");
                 GeoFire geoFireDriverAvailability = new GeoFire(driverAvailabilityRef);
@@ -319,5 +357,32 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 .getReference().child("Drivers Available");
         GeoFire geoFire = new GeoFire(driverAvailabilityRef);
         geoFire.removeLocation(userID);
+    }
+    private void getAssignedCustomerInformation(){
+        DatabaseReference reference = FirebaseDatabase.getInstance()
+                .getReference().child("Users").child("Customers")
+                .child(customerId);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+                    String nm = dataSnapshot.child("name").getValue().toString();
+                    String ph = dataSnapshot.child("phone").getValue().toString();
+
+                    customer_name_text.setText(nm);
+                    customer_phone_text.setText("Phone : "+ph);
+
+                    if (dataSnapshot.hasChild("image")) {
+                        String img = dataSnapshot.child("image").getValue().toString();
+                        Picasso.get().load(img).into(customer_profile_image);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }

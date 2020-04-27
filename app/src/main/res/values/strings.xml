@@ -5,4 +5,6 @@
     <string name="customer_button">I am a customer</string>
     <string name="title_activity_driver_map">Map</string>
     <string name="title_activity_customer_map">Map</string>
+    <string name="click_on_the_button_to_request_a_dryve_near_you_tap_again_to_cancel">Click on the button to request a DRYVE near you. Tap again to cancel.</string>
+    <string name="hi_there">Hi there!</string>
 </resources>

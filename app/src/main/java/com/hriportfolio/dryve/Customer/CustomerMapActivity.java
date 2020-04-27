@@ -3,12 +3,14 @@ package com.hriportfolio.dryve.Customer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
 import android.content.Intent;
@@ -21,6 +23,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -50,6 +54,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hriportfolio.dryve.R;
 import com.hriportfolio.dryve.SettingsActivity;
 import com.hriportfolio.dryve.WelcomeActivity;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.List;
@@ -89,6 +94,25 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
     @BindView(R.id.customer_menu_button)
     ImageButton customer_menu_button;
+    @BindView(R.id.driver_name_text)
+    TextView driver_name_text;
+    @BindView(R.id.driver_phone_text)
+    TextView driver_phone_text;
+    @BindView(R.id.driver_distance_text)
+    TextView driver_distance_text;
+    @BindView(R.id.driver_car_text)
+    TextView driver_car_text;
+    @BindView(R.id.driver_profile_image)
+    CircleImageView driver_profile_image;
+    @BindView(R.id.call_driver_iv)
+    ImageView call_driver_iv;
+    @BindView(R.id.driver_found_card)
+    CardView driver_found_card;
+    @BindView(R.id.customer_placeholder_card)
+    CardView placeholder_card;
+
+
+
 
 
     @Override
@@ -110,11 +134,17 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
         checkLocationPermission();
 
+        if(getIntent().getStringExtra("name")!=null){
+            String naam =  getIntent().getStringExtra("name");
+            //customer_line.setText("Hello "+naam+"!");
+        }
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
 
         findDriverButton.setOnClickListener(view -> {
             //requestType true meaning user has already requested car
@@ -144,6 +174,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     driverMarker.remove();
                 }
                 findDriverButton.setText("Get A Dryve");
+                driver_found_card.setVisibility(View.GONE);
+                placeholder_card.setVisibility(View.VISIBLE);
 
             }else{
                 requestType = true;
@@ -216,10 +248,17 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && requestType) {
+
                     List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
                     double lat = 0;
                     double lng = 0;
-                    findDriverButton.setText("Driver Found!");
+                    findDriverButton.setText("Tap to Cancel");
+                    driver_found_card.setVisibility(View.VISIBLE);
+                    placeholder_card.setVisibility(View.GONE);
+
+
+                    getAssignedDriverInformation();
+
                     if (driverLocationMap.get(0) != null) {
                         lat = Double.parseDouble(driverLocationMap.get(0).toString());
                     }
@@ -243,10 +282,10 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     float distance = location1.distanceTo(location2);
 
                     if(distance<90){
-                        findDriverButton.setText("Driver's arrived.");
+                        driver_distance_text.setText("Driver's arrived.");
                     }
                     else{
-                        findDriverButton.setText("Driver Found:" + String.valueOf(distance));
+                        driver_distance_text.setText(String.valueOf(distance));
                     }
 
                     driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
@@ -387,5 +426,39 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+
+    private void getAssignedDriverInformation(){
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers")
+                .child(driverFoundId);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+                    String nm = dataSnapshot.child("name").getValue().toString();
+                    String ph = dataSnapshot.child("phone").getValue().toString();
+                    String cr = dataSnapshot.child("car").getValue().toString();
+
+                    driver_name_text.setText(nm);
+                    driver_phone_text.setText("Phone : "+ph);
+                    driver_car_text.setText("Car : "+cr);
+
+                    if (dataSnapshot.hasChild("image")) {
+                        String img = dataSnapshot.child("image").getValue().toString();
+                        Picasso.get().load(img).into(driver_profile_image);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 }

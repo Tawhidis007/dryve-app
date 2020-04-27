@@ -25,19 +25,21 @@
             android:layout_height="wrap_content">
 
             <TextView
+                android:id="@+id/driver_first_line"
                 android:textColor="#CD00C853"
                 android:textStyle="bold"
                 android:textSize="22sp"
                 android:autoSizeTextType="uniform"
                 android:layout_marginLeft="10dp"
-                android:text="Hi tawhid@gmail.com!"
+                android:text="Hi!"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/driver_second_line"
                 android:textColor="#AE000000"
                 android:textSize="18sp"
                 android:layout_marginLeft="10dp"
-                android:text="Locating customers nearby.."
+                android:text="Please set up your account"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -65,12 +67,110 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
+                android:layout_height="match_parent">
+
+                <fragment
+                    android:id="@+id/map"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    />
+
+                <androidx.cardview.widget.CardView
+                    android:visibility="gone"
+                    android:id="@+id/customer_found_card"
+                    android:layout_margin="3dp"
+                    android:layout_gravity="bottom"
+                    app:cardCornerRadius="4dp"
+                    app:cardElevation="20dp"
+                    app:cardBackgroundColor="#e0e0e0"
+                    android:layout_width="match_parent"
+                    android:layout_height="125dp">
+
+                    <LinearLayout
+                        android:weightSum="1"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:padding="2dp"
+                            android:layout_weight=".30"
+                            android:layout_width="0dp"
+                            android:orientation="vertical"
+                            android:layout_height="match_parent">
+
+                            <TextView
+                                android:textAlignment="center"
+                                android:paddingLeft="2dp"
+                                android:id="@+id/customer_found_text"
+                                android:textColor="#A6424242"
+                                android:textSize="18sp"
+                                android:layout_marginLeft="2dp"
+                                android:text="New Request"
+                                android:layout_marginBottom="12dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:paddingLeft="8dp"
+                                android:id="@+id/customer_profile_image"
+                                android:layout_width="60dp"
+                                android:layout_height="60dp"
+                                android:src="@drawable/profile"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="20dp"
+                                app:civ_border_color="#CB313131"
+                                app:civ_border_width="2dp"
+                                />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:padding="2dp"
+                            android:orientation="vertical"
+                            android:layout_weight=".55"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent">
+
+                            <TextView
+                                android:id="@+id/customer_name_text"
+                                android:layout_marginTop="10dp"
+                                android:text="Name :"
+                                android:textSize="16sp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                            <TextView
+                                android:id="@+id/customer_phone_text"
+                                android:layout_marginTop="10dp"
+                                android:text="Phone :"
+                                android:textSize="16sp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+
+
+                        </LinearLayout>
+
+
+                        <ImageView
+                            android:id="@+id/call_customer_iv"
+                            android:layout_weight=".15"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_call_black_24dp"
+                            android:layout_width="0dp"
+                            android:layout_marginRight="6dp"
+                            android:layout_height="50dp"/>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </FrameLayout>
 
 
         </androidx.cardview.widget.CardView>
