@@ -21,6 +21,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.hriportfolio.dryve.R;
+import com.hriportfolio.dryve.Utilities.CodeForTimeSaving;
+import com.hriportfolio.dryve.Utilities.KeyString;
+import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 import com.hriportfolio.dryve.WelcomeActivity;
 
 public class CustomerLoginActivity extends AppCompatActivity {
@@ -34,6 +37,7 @@ public class CustomerLoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private ProgressDialog loadingBar;
+    SharedPreferenceManager preferenceManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,31 +46,35 @@ public class CustomerLoginActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_customer_login);
         ButterKnife.bind(this);
-        loadingBar = new ProgressDialog(this);
+        preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
+
         mAuth = FirebaseAuth.getInstance();
 
         customerRegisterButton.setOnClickListener(view -> {
             customer_register_click();
         });
     }
+
     @Override
     public void onBackPressed() {
         Intent i = new Intent(CustomerLoginActivity.this, WelcomeActivity.class);
         startActivity(i);
     }
+
     @OnClick(R.id.customer_login_button)
-    void customer_login_click(){
+    void customer_login_click() {
         String email = customerLoginEmail.getText().toString();
         String password = customerLoginPassword.getText().toString();
 
-        signInCustomer(email,password);
+        signInCustomer(email, password);
     }
-    void customer_register_click(){
+
+    void customer_register_click() {
         Intent customerRegIntent = new Intent(CustomerLoginActivity.this, CustomerRegisterActivity.class);
         startActivity(customerRegIntent);
     }
 
-    private void signInCustomer(String email,String password){
+    private void signInCustomer(String email, String password) {
         if (TextUtils.isEmpty(email)) {
             Toast.makeText(CustomerLoginActivity.this,
                     "Please fill out all the fields", Toast.LENGTH_SHORT).show();
@@ -74,27 +82,26 @@ public class CustomerLoginActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(CustomerLoginActivity.this,
                     "Please fill out all the fields", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            loadingBar.setTitle("Customer Login");
-            loadingBar.setMessage("Please wait while we're authenticating your account!");
+        } else {
+//            loadingBar.setTitle("Customer Login");
+//            loadingBar.setMessage("Please wait while we're authenticating your account!");
+            loadingBar = CodeForTimeSaving.createProgressDialog(this);
             loadingBar.show();
 
             mAuth.signInWithEmailAndPassword(email, password).
-                    addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                loadingBar.dismiss();
-                                Intent customerLoginIntent = new Intent(CustomerLoginActivity.this,
-                                        CustomerMapActivity.class);
-                                startActivity(customerLoginIntent);
-                            } else {
-                                Log.d("driverLoginProblem",task.getException().toString());
-                                Toast.makeText(CustomerLoginActivity.this,
-                                        "Driver Sign in Failed!", Toast.LENGTH_SHORT).show();
-                                loadingBar.dismiss();
-                            }
+                    addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            loadingBar.dismiss();
+                            preferenceManager.setValue(KeyString.SIGN_IN_FLAG, true);
+                            preferenceManager.setValue(KeyString.CUSTOMER_MODE,true);
+                            Intent customerLoginIntent = new Intent(CustomerLoginActivity.this,
+                                    CustomerMapActivity.class);
+                            startActivity(customerLoginIntent);
+                        } else {
+                            Log.d("customerLoginProblem", task.getException().toString());
+                            Toast.makeText(CustomerLoginActivity.this,
+                                    "Customer Sign in Failed!", Toast.LENGTH_SHORT).show();
+                            loadingBar.dismiss();
                         }
                     });
         }

@@ -14,17 +14,17 @@
         android:layout_marginBottom="12dp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="10dp"
-        app:cardBackgroundColor="#F7F7F7"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/quantum_googgreenA700"
         android:layout_width="match_parent"
         android:layout_height="60dp">
 
         <TextView
+            android:textColor="@color/quantum_white_text"
             android:textAlignment="center"
-            android:paddingLeft="20dp"
             android:layout_gravity="center|start"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:text="I am a Dryver"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -43,17 +43,17 @@
         android:layout_marginTop="6dp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="10dp"
-        app:cardBackgroundColor="#F7F7F7"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/quantum_googgreenA700"
         android:layout_width="match_parent"
         android:layout_height="60dp">
 
         <TextView
             android:textAlignment="center"
-            android:paddingLeft="20dp"
             android:layout_gravity="center|start"
-            android:textSize="22sp"
+            android:textSize="18sp"
+            android:textColor="@color/quantum_white_text"
             android:text="I am a Passenger"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>

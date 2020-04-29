@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hriportfolio.dryve.R;
+import com.hriportfolio.dryve.Utilities.CodeForTimeSaving;
 
 public class CustomerRegisterActivity extends AppCompatActivity {
 
@@ -37,10 +39,11 @@ public class CustomerRegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_customer_register);
         ButterKnife.bind(this);
         mAuth = FirebaseAuth.getInstance();
-        loadingBar = new ProgressDialog(this);
     }
 
     @OnClick(R.id.customer_complete_reg_button)
@@ -65,8 +68,9 @@ public class CustomerRegisterActivity extends AppCompatActivity {
                     "Length should be at least 6!", Toast.LENGTH_SHORT).show();
         }
         else {
-            loadingBar.setTitle("Customer Registration");
-            loadingBar.setMessage("Please wait while we register your account!");
+//            loadingBar.setTitle("Customer Registration");
+//            loadingBar.setMessage("Please wait while we register your account!");
+            loadingBar = CodeForTimeSaving.createProgressDialog(this);
             loadingBar.show();
             mAuth.createUserWithEmailAndPassword(customerEmail, customerPassword).
                     addOnCompleteListener(new OnCompleteListener<AuthResult>() {

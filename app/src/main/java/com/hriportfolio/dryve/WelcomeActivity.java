@@ -6,7 +6,9 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,11 +17,17 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.hriportfolio.dryve.Customer.CustomerLoginActivity;
+import com.hriportfolio.dryve.Customer.CustomerMapActivity;
 import com.hriportfolio.dryve.Driver.DriverLoginActivity;
+import com.hriportfolio.dryve.Driver.DriverMapActivity;
+import com.hriportfolio.dryve.Utilities.CodeForTimeSaving;
+import com.hriportfolio.dryve.Utilities.KeyString;
+import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 
 public class WelcomeActivity extends AppCompatActivity {
-
+    SharedPreferenceManager preferenceManager;
     CardView cardView,cardView2;
+    boolean signedInFlag;
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +36,9 @@ public class WelcomeActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_welcome);
         ButterKnife.bind(this);
+
+        initPref();
+
         cardView = findViewById(R.id.card_for_dryver);
         cardView2 = findViewById(R.id.card_for_customer);
         cardView.setOnTouchListener((view, motionEvent) -> {
@@ -41,6 +52,24 @@ public class WelcomeActivity extends AppCompatActivity {
             return true;
         });
 
+    }
+
+    private void initPref(){
+        preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
+         signedInFlag = preferenceManager.getValue(KeyString.SIGN_IN_FLAG,false);
+         Log.d("hririsignedinflag",String.valueOf(signedInFlag));
+         Log.d("hririDrimode",String.valueOf(preferenceManager.getValue(KeyString.DRIVER_MODE,false)));
+
+         if(signedInFlag){
+             if(preferenceManager.getValue(KeyString.DRIVER_MODE,false)){
+                 Intent driverIntent = new Intent(WelcomeActivity.this, DriverMapActivity.class);
+                 startActivity(driverIntent);
+             }else if(preferenceManager.getValue(KeyString.CUSTOMER_MODE,false)){
+                 Intent customerIntent = new Intent(WelcomeActivity.this, CustomerMapActivity.class);
+                 startActivity(customerIntent);
+             }else{
+             }
+         }
     }
 
     @OnClick(R.id.customer_button)

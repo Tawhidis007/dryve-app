@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -32,9 +33,12 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.hriportfolio.dryve.Customer.CustomerMapActivity;
 import com.hriportfolio.dryve.Driver.DriverMapActivity;
+import com.hriportfolio.dryve.Utilities.KeyString;
+import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 
+import java.security.Key;
 import java.util.HashMap;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -54,12 +58,14 @@ public class SettingsActivity extends AppCompatActivity {
     private String checker = "";
     Uri imageUri;
     private String url = "";
-    private String getType;
+    private String getType="";
     private StorageTask uploadTask;
 
     private StorageReference storageProPicRef;
     private DatabaseReference databaseReference;
     private FirebaseAuth mAuth;
+
+    SharedPreferenceManager preferenceManager;
 
 
     @Override
@@ -67,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         ButterKnife.bind(this);
+        preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
 
         getType = getIntent().getStringExtra("type");
         if (getType.equals("Drivers")) {
@@ -91,7 +98,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @OnClick(R.id.setting_back_button)
     void backButtonpressed() {
-        super.onBackPressed();
+        sendBack();
     }
 
     @OnClick(R.id.setting_alright_button)
@@ -118,9 +125,12 @@ public class SettingsActivity extends AppCompatActivity {
             userMap.put("phone", phoneNumber.getText().toString());
 
             if (getType.equals("Drivers")) {
-                userMap.put("name", carName.getText().toString());
+                userMap.put("car", carName.getText().toString());
+                preferenceManager.setValue(KeyString.CAR_NAME,carName.getText().toString());
             }
             databaseReference.child(mAuth.getCurrentUser().getUid()).updateChildren(userMap);
+            preferenceManager.setValue(KeyString.NAME,name.getText().toString());
+            preferenceManager.setValue(KeyString.PHONE_NUMBER,phoneNumber.getText().toString());
             sendBack();
         }
 
@@ -178,6 +188,7 @@ public class SettingsActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Uri downloadUrl = task.getResult();
                         url = downloadUrl.toString();
+                        preferenceManager.setValue(KeyString.PROFILE_PICTURE_URL,url);
 
                         HashMap<String, Object> userMap = new HashMap<>();
                         userMap.put("uid", mAuth.getCurrentUser().getUid());
@@ -187,10 +198,13 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (getType.equals("Drivers")) {
                             userMap.put("car", carName.getText().toString());
+                            preferenceManager.setValue(KeyString.CAR_NAME,carName.getText().toString());
                         }
                         databaseReference.child(mAuth.getCurrentUser().getUid()).updateChildren(userMap);
                         progressDialog.dismiss();
 
+                        preferenceManager.setValue(KeyString.NAME,name.getText().toString());
+                        preferenceManager.setValue(KeyString.PHONE_NUMBER,phoneNumber.getText().toString());
                         sendBack();
                     }
                 }
@@ -203,11 +217,9 @@ public class SettingsActivity extends AppCompatActivity {
     private void sendBack(){
         if (getType.equals("Drivers")) {
             Intent i =new Intent(SettingsActivity.this, DriverMapActivity.class);
-            i.putExtra("name",name.getText().toString());
             startActivity(i);
         } else {
             Intent i =new Intent(SettingsActivity.this, CustomerMapActivity.class);
-            i.putExtra("name",name.getText().toString());
             startActivity(i);
         }
     }

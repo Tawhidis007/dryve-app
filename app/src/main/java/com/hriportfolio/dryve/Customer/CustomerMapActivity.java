@@ -7,14 +7,17 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +36,7 @@ import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -44,6 +48,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -53,9 +61,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hriportfolio.dryve.R;
 import com.hriportfolio.dryve.SettingsActivity;
+import com.hriportfolio.dryve.Utilities.KeyString;
+import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 import com.hriportfolio.dryve.WelcomeActivity;
 import com.squareup.picasso.Picasso;
+import com.google.android.libraries.places.api.Places;
 
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -80,24 +93,32 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     private DatabaseReference driverLocationRef;
     private LatLng customerPickUpLocation;
 
-    Marker driverMarker,pickUpMarker;
+    Marker driverMarker, pickUpMarker;
     private Button findDriverButton;
     private int radius = 1;
 
     private boolean driverFound = false;
     private boolean requestType = false;
     private String driverFoundId;
+    private String whereTo = "";
 
     private ValueEventListener driverLocationRefListener;
     GeoQuery geoQuery;
+    AutocompleteSupportFragment autocompleteFragment;
 
 
     @BindView(R.id.customer_menu_button)
     ImageButton customer_menu_button;
+    @BindView(R.id.customer_placeholder_text)
+    TextView customer_placeholder_text;
+
     @BindView(R.id.driver_name_text)
     TextView driver_name_text;
-    @BindView(R.id.driver_phone_text)
-    TextView driver_phone_text;
+
+    FragmentManager fm = getSupportFragmentManager();
+
+    private String driver_phone_text = "";
+
     @BindView(R.id.driver_distance_text)
     TextView driver_distance_text;
     @BindView(R.id.driver_car_text)
@@ -111,8 +132,15 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     @BindView(R.id.customer_placeholder_card)
     CardView placeholder_card;
 
+    @BindView(R.id.name_for_customer_home_page)
+    TextView customer_name_for_profile_textView;
+    @BindView(R.id.pro_pic_for_customer_home_page)
+    CircleImageView pro_pic_for_customer_home_page;
 
-
+    SharedPreferenceManager preferenceManager;
+    private String sp_name;
+    private String sp_phone;
+    private String sp_picUrl;
 
 
     @Override
@@ -123,6 +151,32 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         setContentView(R.layout.activity_customer_map);
         ButterKnife.bind(this);
         findDriverButton = findViewById(R.id.find_drivers_button);
+        findDriverButton.setEnabled(false);
+        initPref();
+
+        Places.initialize(getApplicationContext(), "AIzaSyDdICGOo49l6fecWuE1iazZgAXzAyWL8TA");
+        PlacesClient placesClient = Places.createClient(this);
+
+        autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                findDriverButton.setEnabled(true);
+                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                findDriverButton.setText("Find A Dryve");
+                whereTo = "No Billing Set";
+                hideSearchBar();
+                customer_placeholder_text.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError(Status status) {
+            }
+        });
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -134,10 +188,6 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
         checkLocationPermission();
 
-        if(getIntent().getStringExtra("name")!=null){
-            String naam =  getIntent().getStringExtra("name");
-            //customer_line.setText("Hello "+naam+"!");
-        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -148,36 +198,46 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
         findDriverButton.setOnClickListener(view -> {
             //requestType true meaning user has already requested car
-            if(requestType){
+            if (requestType) {
                 requestType = false;
                 geoQuery.removeAllListeners();
                 //runtime error as not null when without dryvers at work
                 driverLocationRef.removeEventListener(driverLocationRefListener);
 
-                if(driverFoundId != null){
+                if (driverFoundId != null) {
                     driverDatabaseRef = FirebaseDatabase.getInstance().getReference()
                             .child("Users").child("Drivers")
                             .child(driverFoundId).child("CustomerRideID");
                     driverDatabaseRef.removeValue();
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Users")
+                            .child("Drivers").child(driverFoundId).child("CustomerDestination");
+                    driverDatabaseRef.removeValue();
+
                     driverFoundId = null;
                 }
-                    driverFound = false;
-                    radius = 1;
+                driverFound = false;
+                radius = 1;
                 customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
                 geoFire.removeLocation(customerId);
 
-                if(pickUpMarker != null){
+                if (pickUpMarker != null) {
                     pickUpMarker.remove();
                 }
-                if(driverMarker!=null){
+                if (driverMarker != null) {
                     driverMarker.remove();
                 }
-                findDriverButton.setText("Get A Dryve");
+                findDriverButton.setText("Select Destination First");
+                findDriverButton.setTextColor(Color.parseColor("#242424"));
+                findDriverButton.setBackgroundColor(Color.parseColor("#F1F1F1"));
+                findDriverButton.setEnabled(false);
                 driver_found_card.setVisibility(View.GONE);
                 placeholder_card.setVisibility(View.VISIBLE);
+                customer_placeholder_text.setVisibility(View.GONE);
+                showSearchBar();
 
-            }else{
+
+            } else {
                 requestType = true;
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
                 geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
@@ -190,6 +250,52 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 getClosestDrivers();
             }
         });
+    }
+
+    private void initPref() {
+        preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
+        sp_name = preferenceManager.getValue(KeyString.NAME, "");
+        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER, "");
+        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL, "");
+        if (sp_name.equals("")) {
+            redirectUserToSettings();
+        } else {
+            setupUserInfo();
+        }
+    }
+
+    private void setupUserInfo() {
+        customer_name_for_profile_textView.setText(sp_name);
+        if (!sp_picUrl.equals("")) {
+            Picasso.get().load(sp_picUrl).into(pro_pic_for_customer_home_page);
+        }
+    }
+
+    private void redirectUserToSettings() {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.custom_dialog);
+        dialog.setTitle("Oops!");
+        Button b = dialog.findViewById(R.id.navi_btn);
+        b.setOnClickListener(view -> {
+            Intent i = new Intent(CustomerMapActivity.this, SettingsActivity.class);
+            i.putExtra("type", "Customers");
+            startActivity(i);
+        });
+        dialog.show();
+    }
+
+    private void hideSearchBar() {
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .hide(autocompleteFragment)
+                .commit();
+    }
+
+    private void showSearchBar() {
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .show(autocompleteFragment)
+                .commit();
     }
 
     private void getClosestDrivers() {
@@ -209,6 +315,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                             .child(driverFoundId);
                     HashMap driverMap = new HashMap();
                     driverMap.put("CustomerRideID", customerId); //to show info about request to driver
+                    driverMap.put("CustomerDestination", whereTo);
                     driverDatabaseRef.updateChildren(driverMap);
 
                     gettingDriverLocation();
@@ -243,63 +350,63 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
     private void gettingDriverLocation() {
-       driverLocationRefListener = driverLocationRef.child(driverFoundId).child("l")
-               .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && requestType) {
+        driverLocationRefListener = driverLocationRef.child(driverFoundId).child("l")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists() && requestType) {
 
-                    List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
-                    double lat = 0;
-                    double lng = 0;
-                    findDriverButton.setText("Tap to Cancel");
-                    driver_found_card.setVisibility(View.VISIBLE);
-                    placeholder_card.setVisibility(View.GONE);
+                            List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
+                            double lat = 0;
+                            double lng = 0;
+                            findDriverButton.setBackgroundColor(Color.BLACK);
+                            findDriverButton.setText("Tap to Cancel");
+                            driver_found_card.setVisibility(View.VISIBLE);
+                            placeholder_card.setVisibility(View.GONE);
 
 
-                    getAssignedDriverInformation();
+                            getAssignedDriverInformation();
 
-                    if (driverLocationMap.get(0) != null) {
-                        lat = Double.parseDouble(driverLocationMap.get(0).toString());
+                            if (driverLocationMap.get(0) != null) {
+                                lat = Double.parseDouble(driverLocationMap.get(0).toString());
+                            }
+                            if (driverLocationMap.get(1) != null) {
+                                lng = Double.parseDouble(driverLocationMap.get(1).toString());
+                            }
+                            LatLng driverLatLng = new LatLng(lat, lng);
+                            //if driver cancels,then to remove the marker
+                            if (driverMarker != null) {
+                                driverMarker.remove();
+                            }
+                            //for distance measure
+                            Location location1 = new Location("");
+                            location1.setLatitude(customerPickUpLocation.latitude);
+                            location1.setLongitude(customerPickUpLocation.longitude);
+
+                            Location location2 = new Location("");
+                            location2.setLatitude(driverLatLng.latitude);
+                            location2.setLongitude(driverLatLng.longitude);
+
+                            float distance = location1.distanceTo(location2);
+
+                            if (distance < 90) {
+                                driver_distance_text.setText("Driver's arrived.");
+                            } else {
+                                driver_distance_text.setText(String.valueOf(distance));
+                            }
+
+                            driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
+                                    .title("Your Driver is Here").icon(BitmapDescriptorFactory
+                                            .fromResource(R.drawable.dryver)));
+
+                        }
                     }
-                    if (driverLocationMap.get(1) != null) {
-                        lng = Double.parseDouble(driverLocationMap.get(1).toString());
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                     }
-                    LatLng driverLatLng = new LatLng(lat, lng);
-                    //if driver cancels,then to remove the marker
-                    if (driverMarker != null) {
-                        driverMarker.remove();
-                    }
-                    //for distance measure
-                    Location location1 = new Location("");
-                    location1.setLatitude(customerPickUpLocation.latitude);
-                    location1.setLongitude(customerPickUpLocation.longitude);
-
-                    Location location2 = new Location("");
-                    location2.setLatitude(driverLatLng.latitude);
-                    location2.setLongitude(driverLatLng.longitude);
-
-                    float distance = location1.distanceTo(location2);
-
-                    if(distance<90){
-                        driver_distance_text.setText("Driver's arrived.");
-                    }
-                    else{
-                        driver_distance_text.setText(String.valueOf(distance));
-                    }
-
-                    driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
-                            .title("Your Driver is Here").icon(BitmapDescriptorFactory
-                                    .fromResource(R.drawable.dryver)));
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+                });
     }
 
     @OnClick(R.id.customer_menu_button)
@@ -311,7 +418,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.menu_setting_button) {
                 Intent i = new Intent(CustomerMapActivity.this, SettingsActivity.class);
-                i.putExtra("type","Customers");
+                i.putExtra("type", "Customers");
                 startActivity(i);
             }
             if (item.getItemId() == R.id.menu_logout_button) {
@@ -323,6 +430,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
     private void logoutCustomer() {
+        preferenceManager.setValue(KeyString.SIGN_IN_FLAG, false);
+        preferenceManager.setValue(KeyString.CUSTOMER_MODE, false);
         Intent i = new Intent(CustomerMapActivity.this, WelcomeActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
@@ -429,20 +538,20 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
 
-    private void getAssignedDriverInformation(){
+    private void getAssignedDriverInformation() {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers")
                 .child(driverFoundId);
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
                     String nm = dataSnapshot.child("name").getValue().toString();
                     String ph = dataSnapshot.child("phone").getValue().toString();
                     String cr = dataSnapshot.child("car").getValue().toString();
 
                     driver_name_text.setText(nm);
-                    driver_phone_text.setText("Phone : "+ph);
-                    driver_car_text.setText("Car : "+cr);
+                    driver_phone_text = ph;
+                    driver_car_text.setText("Car : " + cr);
 
                     if (dataSnapshot.hasChild("image")) {
                         String img = dataSnapshot.child("image").getValue().toString();

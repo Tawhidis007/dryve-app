@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@drawable/dr_bg"
     android:layout_height="match_parent"
     tools:context=".SettingsActivity">
 
@@ -37,6 +38,7 @@
     </RelativeLayout>
 
     <TextView
+        android:textColor="@color/quantum_white_secondary_text"
         android:id="@+id/textai"
         android:textAlignment="center"
         app:layout_constraintBottom_toTopOf="parent"
@@ -74,6 +76,8 @@
         android:layout_height="wrap_content"/>
 
     <EditText
+        android:textColorHint="@color/quantum_black_secondary_text"
+        android:drawableRight="@drawable/ic_account_circle_black_24dp"
         android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
         android:padding="12dp"
@@ -90,6 +94,8 @@
 
 
     <EditText
+        android:textColorHint="@color/quantum_black_secondary_text"
+        android:drawableRight="@drawable/ic_phone_android_black_24dp"
         android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
         android:layout_marginTop="10dp"
@@ -106,6 +112,8 @@
         android:layout_height="wrap_content"/>
 
     <EditText
+        android:visibility="gone"
+        android:textColorHint="@color/quantum_black_secondary_text"
         android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
         android:padding="12dp"
@@ -115,7 +123,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/setting_phone"
         android:hint="Enter Your Car Name"
-        android:visibility="gone"
+        android:drawableRight="@drawable/carr"
         android:layout_marginRight="30dp"
         android:layout_marginLeft="30dp"
         android:layout_width="match_parent"
