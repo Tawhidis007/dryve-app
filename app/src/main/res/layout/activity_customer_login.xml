@@ -54,6 +54,7 @@
                 android:layout_marginBottom="6dp"
                 android:backgroundTint="#D7555252"
                 android:id="@+id/customer_login_password"
+                android:inputType="textPassword"
                 android:hint="Enter password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>

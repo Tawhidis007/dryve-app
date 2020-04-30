@@ -48,6 +48,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
@@ -68,6 +70,7 @@ import com.squareup.picasso.Picasso;
 import com.google.android.libraries.places.api.Places;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -141,6 +144,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     private String sp_name;
     private String sp_phone;
     private String sp_picUrl;
+
+    Polyline polyline;
 
 
     @Override
@@ -220,11 +225,20 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
                 geoFire.removeLocation(customerId);
+                if(polyline!=null){
+                    polyline.remove();
+                }
 
                 if (pickUpMarker != null) {
                     pickUpMarker.remove();
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
                 }
                 if (driverMarker != null) {
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
                     driverMarker.remove();
                 }
                 findDriverButton.setText("Select Destination First");
@@ -254,9 +268,9 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
     private void initPref() {
         preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
-        sp_name = preferenceManager.getValue(KeyString.NAME, "");
-        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER, "");
-        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL, "");
+        sp_name = preferenceManager.getValue(KeyString.NAME_CUSTOMER, "");
+        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER_CUSTOMER, "");
+        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL_CUSTOMER, "");
         if (sp_name.equals("")) {
             redirectUserToSettings();
         } else {
@@ -359,6 +373,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                             List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
                             double lat = 0;
                             double lng = 0;
+                            //UPDATE UI
                             findDriverButton.setBackgroundColor(Color.BLACK);
                             findDriverButton.setText("Tap to Cancel");
                             driver_found_card.setVisibility(View.VISIBLE);
@@ -387,12 +402,44 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                             location2.setLatitude(driverLatLng.latitude);
                             location2.setLongitude(driverLatLng.longitude);
 
+                            List<LatLng> alLatLng = new ArrayList<>();
+                            double cLat = ((location1.getLatitude() + location2.getLatitude()) / 2);
+                            double cLon = ((location1.getLongitude() + location2.getLongitude()) / 2);
+
+                            //add skew and arcHeight to move the midPoint
+                            if(Math.abs(location1.getLongitude() - location2.getLongitude()) < 0.0001){
+                                cLon -= 0.0195;
+                            } else {
+                                cLat += 0.0195;
+                            }
+
+                            double tDelta = 1.0/50;
+                            for (double t = 0;  t <= 1.0; t+=tDelta) {
+                                double oneMinusT = (1.0-t);
+                                double t2 = Math.pow(t, 2);
+                                double lon = oneMinusT * oneMinusT * location1.getLongitude()
+                                        + 2 * oneMinusT * t * cLon
+                                        + t2 * location2.getLongitude();
+                                double latt = oneMinusT * oneMinusT * location1.getLatitude()
+                                        + 2 * oneMinusT * t * cLat
+                                        + t2 * location2.getLatitude();
+                                alLatLng.add(new LatLng(latt, lon));
+                            }
+
+                            // draw polyline
+                            PolylineOptions line = new PolylineOptions();
+                            line.width(6);
+                            line.color(Color.GREEN);
+                            line.addAll(alLatLng);
+                            polyline = mMap.addPolyline(line);
+
                             float distance = location1.distanceTo(location2);
 
                             if (distance < 90) {
+                                polyline.remove();
                                 driver_distance_text.setText("Driver's arrived.");
                             } else {
-                                driver_distance_text.setText(String.valueOf(distance));
+                                driver_distance_text.setText("Distance : "+String.valueOf(distance));
                             }
 
                             driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)

@@ -18,7 +18,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -86,6 +85,8 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     @BindView(R.id.customer_profile_image)
     CircleImageView customer_profile_image;
 
+    private Button cancel_button;
+    private Button accept_button;
 
     final static int REQUEST_CODE = 1;
     private GoogleMap mMap;
@@ -119,6 +120,8 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_driver_map);
         ButterKnife.bind(this);
+        cancel_button = findViewById(R.id.driver_cancel_button);
+        accept_button = findViewById(R.id.driver_accept_button);
         initPref();
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -132,13 +135,27 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
             mapFragment.getMapAsync(this);
         }
         getAssignedCustomerRequest();
+
+        cancel_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        accept_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
     }
 
     private void initPref() {
         preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
-        sp_name = preferenceManager.getValue(KeyString.NAME, "");
-        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER, "");
-        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL, "");
+        sp_name = preferenceManager.getValue(KeyString.NAME_DRIVER, "");
+        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER_DRIVER, "");
+        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL_DRIVER, "");
         sp_car = preferenceManager.getValue(KeyString.CAR_NAME, "");
         if (sp_name.equals("")) {
             redirectUserToSettings();
@@ -326,6 +343,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         }
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -382,9 +400,14 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
 
                 String userID = "";
-                if (FirebaseAuth.getInstance().getCurrentUser().getUid() != null) {
-                    userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                try{
+                    if (FirebaseAuth.getInstance().getCurrentUser().getUid() != null) {
+                        userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
                 }
+
                 //String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 DatabaseReference driverAvailabilityRef = FirebaseDatabase.getInstance()
                         .getReference().child("Drivers Available");
@@ -417,7 +440,6 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     protected void onStop() {
         super.onStop();
-
         if (!driverLogoutStatus) {
             disconnectDriver();
         }
@@ -429,6 +451,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                 .getReference().child("Drivers Available");
         GeoFire geoFire = new GeoFire(driverAvailabilityRef);
         geoFire.removeLocation(userID);
+        LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient,this);
     }
 
     private void getAssignedCustomerInformation() {

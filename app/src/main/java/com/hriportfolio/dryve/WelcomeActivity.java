@@ -58,7 +58,9 @@ public class WelcomeActivity extends AppCompatActivity {
         preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
          signedInFlag = preferenceManager.getValue(KeyString.SIGN_IN_FLAG,false);
          Log.d("hririsignedinflag",String.valueOf(signedInFlag));
-         Log.d("hririDrimode",String.valueOf(preferenceManager.getValue(KeyString.DRIVER_MODE,false)));
+         boolean d = preferenceManager.getValue(KeyString.DRIVER_MODE,false);
+         Log.d("hririDriMode",String.valueOf(d));
+        Log.d("hririCusMode",String.valueOf(preferenceManager.getValue(KeyString.CUSTOMER_MODE,false)));
 
          if(signedInFlag){
              if(preferenceManager.getValue(KeyString.DRIVER_MODE,false)){

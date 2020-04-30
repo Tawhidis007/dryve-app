@@ -13,8 +13,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +38,6 @@ import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 
-import java.security.Key;
 import java.util.HashMap;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -71,6 +70,8 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_settings);
         ButterKnife.bind(this);
         preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
@@ -83,12 +84,9 @@ public class SettingsActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(getType);
         storageProPicRef = FirebaseStorage.getInstance().getReference().child("Profile Pictures");
 
-        changePic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                checker = "clicked";
-                CropImage.activity().setAspectRatio(1, 1).start(SettingsActivity.this);
-            }
+        changePic.setOnClickListener(view -> {
+            checker = "clicked";
+            CropImage.activity().setAspectRatio(1, 1).start(SettingsActivity.this);
         });
 
         getUserInformation();
@@ -127,10 +125,15 @@ public class SettingsActivity extends AppCompatActivity {
             if (getType.equals("Drivers")) {
                 userMap.put("car", carName.getText().toString());
                 preferenceManager.setValue(KeyString.CAR_NAME,carName.getText().toString());
+                preferenceManager.setValue(KeyString.NAME_DRIVER,name.getText().toString());
+                preferenceManager.setValue(KeyString.PHONE_NUMBER_DRIVER,phoneNumber.getText().toString());
             }
             databaseReference.child(mAuth.getCurrentUser().getUid()).updateChildren(userMap);
-            preferenceManager.setValue(KeyString.NAME,name.getText().toString());
-            preferenceManager.setValue(KeyString.PHONE_NUMBER,phoneNumber.getText().toString());
+            if (getType.equals("Customers")) {
+                preferenceManager.setValue(KeyString.NAME_CUSTOMER,name.getText().toString());
+                preferenceManager.setValue(KeyString.PHONE_NUMBER_CUSTOMER,phoneNumber.getText().toString());
+            }
+
             sendBack();
         }
 
@@ -188,7 +191,6 @@ public class SettingsActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Uri downloadUrl = task.getResult();
                         url = downloadUrl.toString();
-                        preferenceManager.setValue(KeyString.PROFILE_PICTURE_URL,url);
 
                         HashMap<String, Object> userMap = new HashMap<>();
                         userMap.put("uid", mAuth.getCurrentUser().getUid());
@@ -198,13 +200,19 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (getType.equals("Drivers")) {
                             userMap.put("car", carName.getText().toString());
+                            preferenceManager.setValue(KeyString.PROFILE_PICTURE_URL_DRIVER,url);
                             preferenceManager.setValue(KeyString.CAR_NAME,carName.getText().toString());
+                            preferenceManager.setValue(KeyString.NAME_DRIVER,name.getText().toString());
+                            preferenceManager.setValue(KeyString.PHONE_NUMBER_DRIVER,phoneNumber.getText().toString());
                         }
                         databaseReference.child(mAuth.getCurrentUser().getUid()).updateChildren(userMap);
                         progressDialog.dismiss();
+                        if (getType.equals("Customers")) {
+                            preferenceManager.setValue(KeyString.PROFILE_PICTURE_URL_CUSTOMER,url);
+                            preferenceManager.setValue(KeyString.NAME_CUSTOMER,name.getText().toString());
+                            preferenceManager.setValue(KeyString.PHONE_NUMBER_CUSTOMER,phoneNumber.getText().toString());
+                        }
 
-                        preferenceManager.setValue(KeyString.NAME,name.getText().toString());
-                        preferenceManager.setValue(KeyString.PHONE_NUMBER,phoneNumber.getText().toString());
                         sendBack();
                     }
                 }

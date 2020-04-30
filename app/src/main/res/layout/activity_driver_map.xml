@@ -109,9 +109,9 @@
                     />
 
                 <androidx.cardview.widget.CardView
-                    android:visibility="gone"
-                    android:id="@+id/customer_found_card"
 
+                    android:id="@+id/customer_found_card"
+                    android:visibility="gone"
                     app:cardCornerRadius="2dp"
                     app:cardElevation="12dp"
                     android:layout_gravity="bottom"
@@ -189,18 +189,37 @@
                             android:layout_weight=".30"
                             android:layout_height="0dp">
 
-                            <TextView
-                                android:textColor="@color/quantum_black_text"
-
-                                android:textSize="18sp"
-                                android:text="Call"
+                            <Button
+                                android:layout_marginRight="2dp"
                                 android:layout_marginBottom="6dp"
+                                android:background="@drawable/custom_btn_3"
+                                android:id="@+id/driver_cancel_button"
+                                android:text="Cancel"
+                                android:textColor="@color/quantum_black_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                            <Button
+                                android:layout_marginRight="2dp"
+                                android:layout_marginBottom="6dp"
+                                android:background="@drawable/custom_btn_3"
+                                android:id="@+id/driver_accept_button"
+                                android:text="Accept"
+                                android:textColor="@color/quantum_black_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
 
+<!--                            <TextView-->
+<!--                                android:textColor="@color/quantum_black_text"-->
+
+<!--                                android:textSize="18sp"-->
+<!--                                android:text="Call"-->
+<!--                                android:layout_marginBottom="6dp"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"/>-->
+
                             <ImageView
                                 android:layout_marginBottom="6dp"
-                                android:layout_marginRight="6dp"
+                                android:layout_marginRight="8dp"
                                 android:paddingRight="12dp"
                                 android:paddingLeft="6dp"
                                 android:id="@+id/call_customer_iv"
