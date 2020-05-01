@@ -28,7 +28,7 @@
                 android:textColor="@color/quantum_black_secondary_text"
                 android:layout_marginBottom="30dp"
                 android:textSize="24sp"
-                android:text="Driver Registration"
+                android:text="@string/driver_registration"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 

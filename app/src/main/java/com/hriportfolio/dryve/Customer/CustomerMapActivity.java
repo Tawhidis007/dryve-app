@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -150,6 +151,9 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     Polyline polyline;
     int count = 0;
 
+    @BindView(R.id.customer_alright_button)
+    TextView alright;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,19 +176,20 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                findDriverButton.setEnabled(true);
-                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
-                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
-                findDriverButton.setText("Find A Dryve");
-                whereTo = "API Billing Not Set";
-                hideSearchBar();
-                customer_placeholder_text.setVisibility(View.VISIBLE);
+
             }
 
             @Override
             public void onError(Status status) {
             }
         });
+        findDriverButton.setEnabled(true);
+        findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+        findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+        findDriverButton.setText("Find A Dryve");
+        whereTo = "API Billing Not Set";
+        hideSearchBar();
+        customer_placeholder_text.setVisibility(View.VISIBLE);
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -275,6 +280,62 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", driver_phone_text, null));
             startActivity(intent);
         });
+
+        alright.setOnClickListener(view -> {
+            final Dialog dialog = new Dialog(this);
+            dialog.setContentView(R.layout.request_complete_dialog);
+            dialog.setTitle("Check");
+            Button ok = dialog.findViewById(R.id.request_complete_ok);
+            ok.setOnClickListener(view1 -> {
+                requestType = false;
+                driverLocationRef.removeEventListener(driverLocationRefListener);
+
+                if (driverFoundId != null) {
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference()
+                            .child("Users").child("Drivers")
+                            .child(driverFoundId).child("CustomerRideID");
+                    driverDatabaseRef.removeValue();
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Users")
+                            .child("Drivers").child(driverFoundId).child("CustomerDestination");
+                    driverDatabaseRef.removeValue();
+
+                    driverFoundId = null;
+                }
+                driverFound = false;
+                radius = 1;
+                if(polyline!=null){
+                    polyline.remove();
+                }
+
+                if (pickUpMarker != null) {
+                    pickUpMarker.remove();
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
+                }
+                if (driverMarker != null) {
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
+                    driverMarker.remove();
+                }
+
+                findDriverButton.setText("Select Destination First");
+                findDriverButton.setTextColor(Color.parseColor("#242424"));
+                findDriverButton.setBackgroundColor(Color.parseColor("#F1F1F1"));
+                findDriverButton.setEnabled(false);
+                driver_found_card.setVisibility(View.GONE);
+                placeholder_card.setVisibility(View.VISIBLE);
+                customer_placeholder_text.setVisibility(View.GONE);
+                showSearchBar();
+                dialog.dismiss();
+            });
+            Button cancel = dialog.findViewById(R.id.request_complete_cancel);
+            cancel.setOnClickListener(view2 -> {
+                dialog.dismiss();
+            });
+            dialog.show();
+        });
     }
 
     private void initPref() {
@@ -308,6 +369,9 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         });
         dialog.show();
     }
+
+
+
 
     private void hideSearchBar() {
         fm.beginTransaction()
@@ -462,6 +526,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                             if (distance < 90) {
                                 polyline.remove();
                                 driver_distance_text.setText("Driver's arrived.");
+                                alright.setVisibility(View.VISIBLE);
                             } else {
                                 driver_distance_text.setText("Distance : "+distance + "km");
                             }
@@ -472,23 +537,27 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
                         }else{
                             //this block executes when driver cancels after accepting
-                            driver_found_card.setVisibility(View.GONE);
-                            placeholder_card.setVisibility(View.VISIBLE);
-                            customer_placeholder_text.setVisibility(View.VISIBLE);
-                            hideSearchBar();
-                            if(driverMarker!=null){
-                                driverMarker.remove();
+                            Log.d("FINALBUG","AMI ABAR DHUKte chai CAUSE"+requestType);
+                            if(requestType){
+                                driver_found_card.setVisibility(View.GONE);
+                                placeholder_card.setVisibility(View.VISIBLE);
+                                customer_placeholder_text.setVisibility(View.VISIBLE);
+                                hideSearchBar();
+                                if(driverMarker!=null){
+                                    driverMarker.remove();
+                                }
+                                if(polyline!=null){
+                                    polyline.remove();
+                                }
+                                findDriverButton.setText("Find nearby dryvers..");
+                                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                                driverFound = false;
+                                GeoFire geoFire = new GeoFire(customerDatabaseRef);
+                                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
+                                        lastLocation.getLongitude()));
+
                             }
-                            if(polyline!=null){
-                                polyline.remove();
-                            }
-                            findDriverButton.setText("Finding nearby dryvers..");
-                            findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
-                            findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
-                            driverFound = false;
-                            GeoFire geoFire = new GeoFire(customerDatabaseRef);
-                            geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
-                                    lastLocation.getLongitude()));
 
                         }
                     }
@@ -514,6 +583,29 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             if (item.getItemId() == R.id.menu_logout_button) {
                 mAuth.signOut();
                 logoutCustomer();
+            }
+            if(item.getItemId()==R.id.menu_bypass){
+                findDriverButton.setEnabled(true);
+                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                findDriverButton.setText("Find A Dryve");
+                whereTo = "API Billing Not Set";
+                hideSearchBar();
+                customer_placeholder_text.setVisibility(View.VISIBLE);
+                requestType = false;
+            }
+            if (item.getItemId() == R.id.menu_billing_info) {
+                Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.bill_info_layout);
+                dialog.setTitle("Bill Info");
+                Button okay = dialog.findViewById(R.id.billing_info_ok);
+
+                okay.setOnClickListener(view -> {
+                    dialog.dismiss();
+                });
+                dialog.show();
+                Window window = dialog.getWindow();
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
             }
             return true;
         });

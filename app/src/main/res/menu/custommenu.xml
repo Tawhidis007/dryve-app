@@ -6,9 +6,22 @@
         app:showAsAction="never"
         android:title="Account Information"
         android:visible="true"/>
+
+    <item
+        android:id="@+id/menu_bypass"
+        app:showAsAction="never"
+        android:title="Bypass"
+        android:visible="true"/>
+    <item
+        android:id="@+id/menu_billing_info"
+        app:showAsAction="never"
+        android:title="Billing Info"
+        android:visible="true"/>
     <item
         android:id="@+id/menu_logout_button"
         app:showAsAction="never"
         android:title="Logout"
         android:visible="true"/>
+
+
 </menu>

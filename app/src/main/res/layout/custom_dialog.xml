@@ -11,7 +11,7 @@
         android:layout_marginBottom="8dp"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
-        android:text="Configure Account Settings"
+        android:text="@string/configure_account_settings"
         android:textSize="22sp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
@@ -22,14 +22,14 @@
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
         android:textSize="18sp"
-        android:text="Please set up your account in order to use this app"
+        android:text="@string/please_set_up_your_account_in_order_to_use_this_app"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <Button
         android:textColor="@color/quantum_white_text"
         android:background="@color/quantum_black_secondary_text"
-        android:text="Set up account"
+        android:text="@string/set_up_account"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
         android:id="@+id/navi_btn"

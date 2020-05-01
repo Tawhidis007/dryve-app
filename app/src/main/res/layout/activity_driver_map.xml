@@ -64,7 +64,7 @@
                     android:textColor="@color/quantum_black_secondary_text"
                     android:textSize="16sp"
 
-                    android:text="Please set up your account"
+                    android:text="@string/please_set_up_your_account"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 
@@ -164,7 +164,7 @@
                                     android:textColor="@color/quantum_black_text"
                                     android:id="@+id/customer_name_text"
                                     android:textSize="16sp"
-                                    android:text="Customer Name"
+                                    android:text="@string/customer_name"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"/>
 
@@ -173,7 +173,7 @@
 
                                     android:id="@+id/customer_destination_text"
                                     android:textSize="16sp"
-                                    android:text="Destination : "
+                                    android:text="@string/destination"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"/>
 
@@ -194,7 +194,7 @@
                                 android:layout_marginBottom="6dp"
                                 android:background="@drawable/custom_btn_3"
                                 android:id="@+id/driver_cancel_button"
-                                android:text="Cancel"
+                                android:text="@string/cancel"
                                 android:textColor="@color/quantum_black_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
@@ -203,7 +203,7 @@
                                 android:layout_marginBottom="6dp"
                                 android:background="@drawable/custom_btn_3"
                                 android:id="@+id/driver_accept_button"
-                                android:text="Accept"
+                                android:text="@string/accept"
                                 android:textColor="@color/quantum_black_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>

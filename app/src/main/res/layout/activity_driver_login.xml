@@ -29,7 +29,7 @@
                 android:layout_marginBottom="30dp"
                 android:textAlignment="center"
                 android:textSize="30sp"
-                android:text="Driver Login"
+                android:text="@string/driver_login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
@@ -42,7 +42,7 @@
                 android:layout_marginBottom="6dp"
                 android:backgroundTint="#D7555252"
                 android:id="@+id/driver_login_email"
-                android:hint="Enter email"
+                android:hint="@string/enter_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
@@ -55,7 +55,7 @@
                 android:layout_marginBottom="12dp"
                 android:backgroundTint="#D7555252"
                 android:id="@+id/driver_login_password"
-                android:hint="Enter password"
+                android:hint="@string/enter_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <Button
@@ -66,7 +66,7 @@
                 android:textColor="#FFFCFC"
                 android:background="@drawable/custom_button_2"
                 android:id="@+id/driver_login_button"
-                android:text="Login"
+                android:text="@string/login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <Button
@@ -74,7 +74,7 @@
                 android:textAllCaps="false"
                 android:background="@drawable/custom_btn_3"
                 android:id="@+id/driver_forget_password_button"
-                android:text="Forgot your password?"
+                android:text="@string/forgot_your_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -98,7 +98,7 @@
                     android:textColor="#DC00C853"
                     android:id="@+id/driver_register_button"
                     android:layout_marginLeft="2dp"
-                    android:text="Register"
+                    android:text="@string/register"
                     android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>

@@ -488,6 +488,12 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         }
     }
 
+    @Override
+    protected void onRestart(){
+        super.onRestart();
+        onConnected(Bundle.EMPTY);
+    }
+
     private void disconnectDriver() {
         String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference driverAvailabilityRef = FirebaseDatabase.getInstance()

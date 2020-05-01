@@ -29,9 +29,9 @@
             <TextView
                 android:textColor="@color/quantum_black_secondary_text"
                 android:layout_marginBottom="30dp"
-                android:textSize="30sp"
+                android:textSize="26sp"
                 android:textAlignment="center"
-                android:text="Customer Login"
+                android:text="@string/customer_login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <EditText
@@ -42,7 +42,7 @@
                 android:layout_marginBottom="6dp"
                 android:backgroundTint="#D7555252"
                 android:id="@+id/customer_login_email"
-                android:hint="Enter email"
+                android:hint="@string/enter_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
@@ -55,7 +55,7 @@
                 android:backgroundTint="#D7555252"
                 android:id="@+id/customer_login_password"
                 android:inputType="textPassword"
-                android:hint="Enter password"
+                android:hint="@string/enter_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <Button
@@ -66,7 +66,7 @@
                 android:textColor="#FFFCFC"
                 android:background="@drawable/custom_button_2"
                 android:id="@+id/customer_login_button"
-                android:text="Login"
+                android:text="@string/login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <Button
@@ -74,7 +74,7 @@
                 android:textAllCaps="false"
                 android:background="@drawable/custom_btn_3"
                 android:id="@+id/customer_forget_password_button"
-                android:text="Forgot your password?"
+                android:text="@string/forgot_your_password"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -90,7 +90,7 @@
                     android:layout_margin="0dp"
                     android:padding="4dp"
                     android:textSize="18sp"
-                    android:text="Don't have an account?"
+                    android:text="@string/don_t_have_an_account"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
@@ -98,7 +98,7 @@
                     android:textColor="#D300C853"
                     android:id="@+id/customer_register_button"
                     android:layout_marginLeft="2dp"
-                    android:text="Register"
+                    android:text="@string/register"
                     android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
