@@ -19,27 +19,59 @@
         android:layout_height="0dp">
 
         <LinearLayout
+            android:weightSum="1"
+            android:padding="6dp"
             android:layout_weight=".80"
             android:layout_width="0dp"
-            android:orientation="vertical"
-            android:layout_height="wrap_content">
+            android:orientation="horizontal"
+            android:layout_height="match_parent">
 
-            <TextView
-                android:textColor="#CD00C853"
-                android:textStyle="bold"
-                android:textSize="22sp"
-                android:autoSizeTextType="uniform"
-                android:layout_marginLeft="10dp"
-                android:text="Hi tawhid@gmail.com!"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:textColor="#AE000000"
-                android:textSize="18sp"
-                android:layout_marginLeft="10dp"
-                android:text="Locating customers nearby.."
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:gravity="center"
+                android:layout_weight=".30"
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:layout_gravity="center"
+                    android:id="@+id/pro_pic_for_driver_profile"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/profile"
+                    app:civ_border_color="#CB313131"
+                    app:civ_border_width="1dp"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_weight=".70"
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/name_for_driver_profile"
+                    android:textColor="@color/quantum_black_text"
+                    android:textSize="22sp"
+                    android:text="Hello!"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/driver_dummy_text"
+                    android:textColor="@color/quantum_black_secondary_text"
+                    android:textSize="16sp"
+
+                    android:text="@string/please_set_up_your_account"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+
+
+            </LinearLayout>
+
 
         </LinearLayout>
 
@@ -65,12 +97,146 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
+                android:layout_height="match_parent">
+
+                <fragment
+                    android:id="@+id/map"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    />
+
+                <androidx.cardview.widget.CardView
+                    android:visibility="gone"
+                    android:id="@+id/customer_found_card"
+
+                    app:cardCornerRadius="2dp"
+                    app:cardElevation="12dp"
+                    android:layout_gravity="bottom"
+                    app:cardBackgroundColor="#e0e0e0"
+                    android:layout_width="match_parent"
+                    android:layout_height="125dp">
+
+                    <LinearLayout
+                        android:weightSum="1"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+
+                        <LinearLayout
+                            android:weightSum="1"
+                            android:padding="2dp"
+                            android:layout_weight=".70"
+                            android:layout_width="match_parent"
+                            android:orientation="horizontal"
+                            android:layout_height="0dp">
+
+                            <LinearLayout
+                                android:gravity="center"
+                                android:layout_weight=".22"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent">
+
+                                <de.hdodenhof.circleimageview.CircleImageView
+                                    android:layout_gravity="center"
+                                    android:id="@+id/customer_profile_image"
+                                    android:layout_width="60dp"
+                                    android:layout_height="60dp"
+                                    android:src="@drawable/profile"
+                                    app:civ_border_color="#CB313131"
+                                    app:civ_border_width="1dp"
+                                    />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:paddingLeft="4dp"
+                                android:paddingTop="2dp"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:layout_weight=".78"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent">
+
+                                <TextView
+                                    android:textColor="@color/quantum_black_text"
+                                    android:id="@+id/customer_name_text"
+                                    android:textSize="16sp"
+                                    android:text="@string/customer_name"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"/>
+
+                                <TextView
+                                    android:textColor="@color/quantum_black_text"
+
+                                    android:id="@+id/customer_destination_text"
+                                    android:textSize="16sp"
+                                    android:text="@string/destination"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"/>
+
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="horizontal"
+                            android:gravity="center|end"
+                            android:layout_width="match_parent"
+                            android:layout_weight=".30"
+                            android:layout_height="0dp">
+
+                            <Button
+                                android:layout_marginRight="2dp"
+                                android:layout_marginBottom="6dp"
+                                android:background="@drawable/custom_btn_3"
+                                android:id="@+id/driver_cancel_button"
+                                android:text="@string/cancel"
+                                android:textColor="@color/quantum_black_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+                            <Button
+                                android:layout_marginRight="2dp"
+                                android:layout_marginBottom="6dp"
+                                android:background="@drawable/custom_btn_3"
+                                android:id="@+id/driver_accept_button"
+                                android:text="@string/accept"
+                                android:textColor="@color/quantum_black_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+
+<!--                            <TextView-->
+<!--                                android:textColor="@color/quantum_black_text"-->
+
+<!--                                android:textSize="18sp"-->
+<!--                                android:text="Call"-->
+<!--                                android:layout_marginBottom="6dp"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"/>-->
+
+                            <ImageView
+                                android:visibility="gone"
+                                android:layout_marginBottom="6dp"
+                                android:layout_marginRight="8dp"
+                                android:paddingRight="12dp"
+                                android:paddingLeft="6dp"
+                                android:id="@+id/call_customer_iv"
+                                android:src="@drawable/ic_call_black_24dp"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"/>
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+
+                </androidx.cardview.widget.CardView>
+
+            </FrameLayout>
 
 
         </androidx.cardview.widget.CardView>

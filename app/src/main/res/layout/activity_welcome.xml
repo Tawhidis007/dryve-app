@@ -10,21 +10,22 @@
     tools:context=".WelcomeActivity">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_for_dryver"
         android:layout_marginBottom="12dp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="20dp"
-        app:cardBackgroundColor="#F7F7F7"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/quantum_googgreenA700"
         android:layout_width="match_parent"
         android:layout_height="60dp">
 
         <TextView
+            android:textColor="@color/quantum_white_text"
             android:textAlignment="center"
-            android:paddingLeft="20dp"
             android:layout_gravity="center|start"
-            android:textSize="22sp"
-            android:text="I am a Dryver"
+            android:textSize="18sp"
+            android:text="@string/i_am_a_dryver"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -38,21 +39,22 @@
 
     </androidx.cardview.widget.CardView>
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_for_customer"
         android:layout_marginTop="6dp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="20dp"
-        app:cardBackgroundColor="#F7F7F7"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/quantum_googgreenA700"
         android:layout_width="match_parent"
         android:layout_height="60dp">
 
         <TextView
             android:textAlignment="center"
-            android:paddingLeft="20dp"
             android:layout_gravity="center|start"
-            android:textSize="22sp"
-            android:text="I am a Passenger"
+            android:textSize="18sp"
+            android:textColor="@color/quantum_white_text"
+            android:text="@string/i_am_a_passenger"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

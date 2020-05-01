@@ -3,24 +3,33 @@ package com.hriportfolio.dryve.Customer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -29,6 +38,7 @@ import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,6 +50,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -49,8 +65,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hriportfolio.dryve.R;
 import com.hriportfolio.dryve.SettingsActivity;
+import com.hriportfolio.dryve.Utilities.KeyString;
+import com.hriportfolio.dryve.Utilities.SharedPreferenceManager;
 import com.hriportfolio.dryve.WelcomeActivity;
+import com.squareup.picasso.Picasso;
+import com.google.android.libraries.places.api.Places;
 
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -75,20 +99,60 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     private DatabaseReference driverLocationRef;
     private LatLng customerPickUpLocation;
 
-    Marker driverMarker,pickUpMarker;
+    Marker driverMarker, pickUpMarker;
     private Button findDriverButton;
     private int radius = 1;
 
     private boolean driverFound = false;
     private boolean requestType = false;
     private String driverFoundId;
+    private String whereTo = "";
 
     private ValueEventListener driverLocationRefListener;
     GeoQuery geoQuery;
+    AutocompleteSupportFragment autocompleteFragment;
 
 
     @BindView(R.id.customer_menu_button)
     ImageButton customer_menu_button;
+    @BindView(R.id.customer_placeholder_text)
+    TextView customer_placeholder_text;
+
+    @BindView(R.id.driver_name_text)
+    TextView driver_name_text;
+
+    FragmentManager fm = getSupportFragmentManager();
+
+    private String driver_phone_text = "";
+
+    @BindView(R.id.driver_distance_text)
+    TextView driver_distance_text;
+    @BindView(R.id.driver_car_text)
+    TextView driver_car_text;
+    @BindView(R.id.driver_profile_image)
+    CircleImageView driver_profile_image;
+    @BindView(R.id.call_driver_iv)
+    ImageView call_driver_iv;
+    @BindView(R.id.driver_found_card)
+    CardView driver_found_card;
+    @BindView(R.id.customer_placeholder_card)
+    CardView placeholder_card;
+
+    @BindView(R.id.name_for_customer_home_page)
+    TextView customer_name_for_profile_textView;
+    @BindView(R.id.pro_pic_for_customer_home_page)
+    CircleImageView pro_pic_for_customer_home_page;
+
+    SharedPreferenceManager preferenceManager;
+    private String sp_name;
+    private String sp_phone;
+    private String sp_picUrl;
+
+    Polyline polyline;
+    int count = 0;
+
+    @BindView(R.id.customer_alright_button)
+    TextView alright;
 
 
     @Override
@@ -99,16 +163,46 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         setContentView(R.layout.activity_customer_map);
         ButterKnife.bind(this);
         findDriverButton = findViewById(R.id.find_drivers_button);
+        //findDriverButton.setEnabled(false);
+        initPref();
+
+        Places.initialize(getApplicationContext(), "AIzaSyDdICGOo49l6fecWuE1iazZgAXzAyWL8TA");
+        PlacesClient placesClient = Places.createClient(this);
+
+        autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+
+            }
+
+            @Override
+            public void onError(Status status) {
+            }
+        });
+        findDriverButton.setEnabled(true);
+        findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+        findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+        findDriverButton.setText("Find A Dryve");
+        whereTo = "API Billing Not Set";
+        hideSearchBar();
+        customer_placeholder_text.setVisibility(View.VISIBLE);
+
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         customerDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Customer Requests");
         driversAvailableDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Drivers Available");
+        //customer listens when drivers around with this
         driverLocationRef = FirebaseDatabase.getInstance().getReference().child("Drivers Working");
 
 
         checkLocationPermission();
+
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -118,48 +212,182 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
         findDriverButton.setOnClickListener(view -> {
             //requestType true meaning user has already requested car
-            if(requestType){
+            if (requestType) {
                 requestType = false;
                 geoQuery.removeAllListeners();
                 //runtime error as not null when without dryvers at work
                 driverLocationRef.removeEventListener(driverLocationRefListener);
 
-                if(driverFoundId != null){
+                if (driverFoundId != null) {
                     driverDatabaseRef = FirebaseDatabase.getInstance().getReference()
                             .child("Users").child("Drivers")
                             .child(driverFoundId).child("CustomerRideID");
                     driverDatabaseRef.removeValue();
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Users")
+                            .child("Drivers").child(driverFoundId).child("CustomerDestination");
+                    driverDatabaseRef.removeValue();
+
                     driverFoundId = null;
                 }
-                    driverFound = false;
-                    radius = 1;
+                driverFound = false;
+                radius = 1;
                 customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
                 geoFire.removeLocation(customerId);
-
-                if(pickUpMarker != null){
-                    pickUpMarker.remove();
+                if(polyline!=null){
+                    polyline.remove();
                 }
-                if(driverMarker!=null){
+
+                if (pickUpMarker != null) {
+                    pickUpMarker.remove();
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
+                }
+                if (driverMarker != null) {
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
                     driverMarker.remove();
                 }
-                findDriverButton.setText("Get A Dryve");
+                findDriverButton.setText("Select Destination First");
+                findDriverButton.setTextColor(Color.parseColor("#242424"));
+                findDriverButton.setBackgroundColor(Color.parseColor("#F1F1F1"));
+                findDriverButton.setEnabled(false);
+                driver_found_card.setVisibility(View.GONE);
+                placeholder_card.setVisibility(View.VISIBLE);
+                customer_placeholder_text.setVisibility(View.GONE);
+                showSearchBar();
 
-            }else{
+
+            } else {
+
                 requestType = true;
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
-                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
+                        lastLocation.getLongitude()));
 
                 customerPickUpLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
                 pickUpMarker = mMap.addMarker(new MarkerOptions().position(customerPickUpLocation)
                         .title("My Location").icon(BitmapDescriptorFactory.fromResource(R.drawable.user)));
 
-                findDriverButton.setText("Getting Your Dryver...");
+               // findDriverButton.setText("Searching nearby dryvers..");
                 getClosestDrivers();
             }
         });
+
+        call_driver_iv.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", driver_phone_text, null));
+            startActivity(intent);
+        });
+
+        alright.setOnClickListener(view -> {
+            final Dialog dialog = new Dialog(this);
+            dialog.setContentView(R.layout.request_complete_dialog);
+            dialog.setTitle("Check");
+            Button ok = dialog.findViewById(R.id.request_complete_ok);
+            ok.setOnClickListener(view1 -> {
+                requestType = false;
+                driverLocationRef.removeEventListener(driverLocationRefListener);
+
+                if (driverFoundId != null) {
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference()
+                            .child("Users").child("Drivers")
+                            .child(driverFoundId).child("CustomerRideID");
+                    driverDatabaseRef.removeValue();
+                    driverDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Users")
+                            .child("Drivers").child(driverFoundId).child("CustomerDestination");
+                    driverDatabaseRef.removeValue();
+
+                    driverFoundId = null;
+                }
+                driverFound = false;
+                radius = 1;
+                if(polyline!=null){
+                    polyline.remove();
+                }
+
+                if (pickUpMarker != null) {
+                    pickUpMarker.remove();
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
+                }
+                if (driverMarker != null) {
+                    if(polyline!=null){
+                        polyline.remove();
+                    }
+                    driverMarker.remove();
+                }
+
+                findDriverButton.setText("Select Destination First");
+                findDriverButton.setTextColor(Color.parseColor("#242424"));
+                findDriverButton.setBackgroundColor(Color.parseColor("#F1F1F1"));
+                findDriverButton.setEnabled(false);
+                driver_found_card.setVisibility(View.GONE);
+                placeholder_card.setVisibility(View.VISIBLE);
+                customer_placeholder_text.setVisibility(View.GONE);
+                showSearchBar();
+                dialog.dismiss();
+            });
+            Button cancel = dialog.findViewById(R.id.request_complete_cancel);
+            cancel.setOnClickListener(view2 -> {
+                dialog.dismiss();
+            });
+            dialog.show();
+        });
     }
 
+    private void initPref() {
+        preferenceManager = new SharedPreferenceManager(this, KeyString.PREF_NAME);
+        sp_name = preferenceManager.getValue(KeyString.NAME_CUSTOMER, "");
+        sp_phone = preferenceManager.getValue(KeyString.PHONE_NUMBER_CUSTOMER, "");
+        sp_picUrl = preferenceManager.getValue(KeyString.PROFILE_PICTURE_URL_CUSTOMER, "");
+        if (sp_name.equals("")) {
+            redirectUserToSettings();
+        } else {
+            setupUserInfo();
+        }
+    }
+
+    private void setupUserInfo() {
+        customer_name_for_profile_textView.setText(sp_name);
+        if (!sp_picUrl.equals("")) {
+            Picasso.get().load(sp_picUrl).into(pro_pic_for_customer_home_page);
+        }
+    }
+
+    private void redirectUserToSettings() {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.custom_dialog);
+        dialog.setTitle("Oops!");
+        Button b = dialog.findViewById(R.id.navi_btn);
+        b.setOnClickListener(view -> {
+            Intent i = new Intent(CustomerMapActivity.this, SettingsActivity.class);
+            i.putExtra("type", "Customers");
+            startActivity(i);
+        });
+        dialog.show();
+    }
+
+
+
+
+    private void hideSearchBar() {
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .hide(autocompleteFragment)
+                .commit();
+    }
+
+    private void showSearchBar() {
+        fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .show(autocompleteFragment)
+                .commit();
+    }
+
+    //iterative
     private void getClosestDrivers() {
         GeoFire geoFire = new GeoFire(driversAvailableDatabaseRef);
         geoQuery = geoFire.queryAtLocation(new GeoLocation
@@ -177,10 +405,12 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                             .child(driverFoundId);
                     HashMap driverMap = new HashMap();
                     driverMap.put("CustomerRideID", customerId); //to show info about request to driver
+                    driverMap.put("CustomerDestination", whereTo);
                     driverDatabaseRef.updateChildren(driverMap);
 
+                    count = 0;
                     gettingDriverLocation();
-                    findDriverButton.setText("Locating Dryvers..");
+                 //   findDriverButton.setText("Locating Dryvers..");
 
                 }
             }
@@ -211,56 +441,131 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
     private void gettingDriverLocation() {
-       driverLocationRefListener = driverLocationRef.child(driverFoundId).child("l")
-               .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && requestType) {
-                    List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
-                    double lat = 0;
-                    double lng = 0;
-                    findDriverButton.setText("Driver Found!");
-                    if (driverLocationMap.get(0) != null) {
-                        lat = Double.parseDouble(driverLocationMap.get(0).toString());
+        //listens if a driver has accepted from DRIVER WORKING creation
+        driverLocationRefListener = driverLocationRef.child(driverFoundId).child("l")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists() && requestType) {
+
+                            //to avoid creating-deleting customer requests everytime
+                            if(count==0){
+                                GeoFire geoFire = new GeoFire(customerDatabaseRef);
+                                geoFire.removeLocation(customerId);
+                                count++;
+                            }
+
+                            List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
+                            double lat = 0;
+                            double lng = 0;
+                            //UPDATE UI
+                            findDriverButton.setBackgroundColor(Color.BLACK);
+                            findDriverButton.setText("Tap to Cancel");
+                            driver_found_card.setVisibility(View.VISIBLE);
+                            placeholder_card.setVisibility(View.GONE);
+
+
+                            getAssignedDriverInformation();
+
+                            if (driverLocationMap.get(0) != null) {
+                                lat = Double.parseDouble(driverLocationMap.get(0).toString());
+                            }
+                            if (driverLocationMap.get(1) != null) {
+                                lng = Double.parseDouble(driverLocationMap.get(1).toString());
+                            }
+                            LatLng driverLatLng = new LatLng(lat, lng);
+                            //if driver cancels,then to remove the marker
+                            if (driverMarker != null) {
+                                driverMarker.remove();
+                            }
+                            //for distance measure
+                            Location location1 = new Location("");
+                            location1.setLatitude(customerPickUpLocation.latitude);
+                            location1.setLongitude(customerPickUpLocation.longitude);
+
+                            Location location2 = new Location("");
+                            location2.setLatitude(driverLatLng.latitude);
+                            location2.setLongitude(driverLatLng.longitude);
+
+                            List<LatLng> alLatLng = new ArrayList<>();
+                            double cLat = ((location1.getLatitude() + location2.getLatitude()) / 2);
+                            double cLon = ((location1.getLongitude() + location2.getLongitude()) / 2);
+
+                            //add skew and arcHeight to move the midPoint
+                            if(Math.abs(location1.getLongitude() - location2.getLongitude()) < 0.0001){
+                                cLon -= 0.0195;
+                            } else {
+                                cLat += 0.0195;
+                            }
+
+                            double tDelta = 1.0/50;
+                            for (double t = 0;  t <= 1.0; t+=tDelta) {
+                                double oneMinusT = (1.0-t);
+                                double t2 = Math.pow(t, 2);
+                                double lon = oneMinusT * oneMinusT * location1.getLongitude()
+                                        + 2 * oneMinusT * t * cLon
+                                        + t2 * location2.getLongitude();
+                                double latt = oneMinusT * oneMinusT * location1.getLatitude()
+                                        + 2 * oneMinusT * t * cLat
+                                        + t2 * location2.getLatitude();
+                                alLatLng.add(new LatLng(latt, lon));
+                            }
+
+                            // draw polyline
+                            PolylineOptions line = new PolylineOptions();
+                            line.width(4);
+                            line.color(Color.GREEN);
+                            line.addAll(alLatLng);
+                            polyline = mMap.addPolyline(line);
+
+                            float distance = location1.distanceTo(location2)/1000;
+                            DecimalFormat decimalFormat = new DecimalFormat("#0.00");
+                            decimalFormat.format(distance);
+
+
+                            if (distance < 90) {
+                                polyline.remove();
+                                driver_distance_text.setText("Driver's arrived.");
+                                alright.setVisibility(View.VISIBLE);
+                            } else {
+                                driver_distance_text.setText("Distance : "+distance + "km");
+                            }
+
+                            driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
+                                    .title("Your Driver is Here").icon(BitmapDescriptorFactory
+                                            .fromResource(R.drawable.dryver)));
+
+                        }else{
+                            //this block executes when driver cancels after accepting
+                            Log.d("FINALBUG","AMI ABAR DHUKte chai CAUSE"+requestType);
+                            if(requestType){
+                                driver_found_card.setVisibility(View.GONE);
+                                placeholder_card.setVisibility(View.VISIBLE);
+                                customer_placeholder_text.setVisibility(View.VISIBLE);
+                                hideSearchBar();
+                                if(driverMarker!=null){
+                                    driverMarker.remove();
+                                }
+                                if(polyline!=null){
+                                    polyline.remove();
+                                }
+                                findDriverButton.setText("Find nearby dryvers..");
+                                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                                driverFound = false;
+                                GeoFire geoFire = new GeoFire(customerDatabaseRef);
+                                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
+                                        lastLocation.getLongitude()));
+
+                            }
+
+                        }
                     }
-                    if (driverLocationMap.get(1) != null) {
-                        lng = Double.parseDouble(driverLocationMap.get(1).toString());
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                     }
-                    LatLng driverLatLng = new LatLng(lat, lng);
-                    //if driver cancels,then to remove the marker
-                    if (driverMarker != null) {
-                        driverMarker.remove();
-                    }
-                    //for distance measure
-                    Location location1 = new Location("");
-                    location1.setLatitude(customerPickUpLocation.latitude);
-                    location1.setLongitude(customerPickUpLocation.longitude);
-
-                    Location location2 = new Location("");
-                    location2.setLatitude(driverLatLng.latitude);
-                    location2.setLongitude(driverLatLng.longitude);
-
-                    float distance = location1.distanceTo(location2);
-
-                    if(distance<90){
-                        findDriverButton.setText("Driver's arrived.");
-                    }
-                    else{
-                        findDriverButton.setText("Driver Found:" + String.valueOf(distance));
-                    }
-
-                    driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
-                            .title("Your Driver is Here").icon(BitmapDescriptorFactory
-                                    .fromResource(R.drawable.dryver)));
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+                });
     }
 
     @OnClick(R.id.customer_menu_button)
@@ -272,18 +577,43 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.menu_setting_button) {
                 Intent i = new Intent(CustomerMapActivity.this, SettingsActivity.class);
-                i.putExtra("type","Customers");
+                i.putExtra("type", "Customers");
                 startActivity(i);
             }
             if (item.getItemId() == R.id.menu_logout_button) {
                 mAuth.signOut();
                 logoutCustomer();
             }
+            if(item.getItemId()==R.id.menu_bypass){
+                findDriverButton.setEnabled(true);
+                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                findDriverButton.setText("Find A Dryve");
+                whereTo = "API Billing Not Set";
+                hideSearchBar();
+                customer_placeholder_text.setVisibility(View.VISIBLE);
+                requestType = false;
+            }
+            if (item.getItemId() == R.id.menu_billing_info) {
+                Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.bill_info_layout);
+                dialog.setTitle("Bill Info");
+                Button okay = dialog.findViewById(R.id.billing_info_ok);
+
+                okay.setOnClickListener(view -> {
+                    dialog.dismiss();
+                });
+                dialog.show();
+                Window window = dialog.getWindow();
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+            }
             return true;
         });
     }
 
     private void logoutCustomer() {
+        preferenceManager.setValue(KeyString.SIGN_IN_FLAG, false);
+        preferenceManager.setValue(KeyString.CUSTOMER_MODE, false);
         Intent i = new Intent(CustomerMapActivity.this, WelcomeActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
@@ -309,6 +639,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
 
@@ -381,11 +712,45 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         lastLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+
+    private void getAssignedDriverInformation() {
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers")
+                .child(driverFoundId);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                    String nm = dataSnapshot.child("name").getValue().toString();
+                    String ph = dataSnapshot.child("phone").getValue().toString();
+                    String cr = dataSnapshot.child("car").getValue().toString();
+
+                    driver_name_text.setText(nm);
+                    driver_phone_text = ph;
+                    driver_car_text.setText("Car : " + cr);
+
+                    if (dataSnapshot.hasChild("image")) {
+                        String img = dataSnapshot.child("image").getValue().toString();
+                        Picasso.get().load(img).into(driver_profile_image);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 }

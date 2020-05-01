@@ -23,11 +23,20 @@
             android:layout_marginTop="8dp"
             app:cardElevation="8dp">
 
-            <fragment
-                android:id="@+id/map"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent">
+
+                <fragment
+                    android:id="@+id/map"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
@@ -43,50 +52,233 @@
         android:layout_height="0dp">
 
         <LinearLayout
+            android:weightSum="1"
             android:background="#f5f5f5"
             android:padding="2dp"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:textColor="#A6424242"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:layout_marginTop="12dp"
-                android:layout_marginLeft="12dp"
-                android:text="Hello tawhid@gmail.com! "
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
 
             <androidx.cardview.widget.CardView
-                android:layout_margin="12dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="20dp"
+               android:visibility="gone"
+                android:id="@+id/driver_found_card"
+                android:layout_margin="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="12dp"
+                android:layout_weight=".85"
                 app:cardBackgroundColor="#e0e0e0"
                 android:layout_width="match_parent"
-                android:layout_height="60dp">
+                android:layout_height="0dp">
 
-                <TextView
-                    android:paddingLeft="20dp"
-                    android:layout_gravity="center|start"
-                    android:textSize="22sp"
-                    android:text="Where to?"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <ImageView
-                    android:paddingRight="8dp"
-                    android:layout_gravity="center|end"
-                    android:src="@drawable/ic_search_black_24dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                <LinearLayout
+                    android:weightSum="1"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                    <LinearLayout
+                        android:weightSum="1"
+                        android:padding="2dp"
+                        android:layout_weight=".70"
+                        android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:layout_height="0dp">
+
+                        <LinearLayout
+                            android:gravity="center"
+                            android:layout_weight=".28"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:paddingLeft="8dp"
+                                android:layout_gravity="center"
+                                android:id="@+id/driver_profile_image"
+                                android:layout_width="70dp"
+                                android:layout_height="70dp"
+                                android:src="@drawable/profile"
+                                app:civ_border_color="#CB313131"
+                                app:civ_border_width="2dp"
+                                />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:paddingLeft="6dp"
+                            android:paddingTop="2dp"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:layout_weight=".72"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent">
+
+                            <TextView
+                                android:textColor="@color/quantum_black_text"
+                                android:id="@+id/driver_name_text"
+                                android:textSize="18sp"
+                                android:autoSizeTextType="uniform"
+                                android:autoSizeMinTextSize="14sp"
+                                android:autoSizeMaxTextSize="22sp"
+                                android:autoSizeStepGranularity="2sp"
+
+                                android:text="@string/driver_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                            <TextView
+                                android:autoSizeTextType="uniform"
+                                android:autoSizeMinTextSize="14sp"
+                                android:autoSizeMaxTextSize="22sp"
+                                android:autoSizeStepGranularity="2sp"
+                                android:textColor="@color/quantum_black_text"
+                                android:id="@+id/driver_distance_text"
+                                android:textSize="18sp"
+                                android:text="@string/distance"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                            <TextView
+                                android:autoSizeTextType="uniform"
+                                android:autoSizeMinTextSize="14sp"
+                                android:autoSizeMaxTextSize="22sp"
+                                android:autoSizeStepGranularity="2sp"
+                                android:textColor="@color/quantum_black_text"
+                                android:id="@+id/driver_car_text"
+                                android:textSize="18sp"
+                                android:text="@string/car"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:gravity="center|end"
+                        android:layout_width="match_parent"
+                        android:layout_weight=".30"
+                        android:layout_height="0dp">
+
+                        <TextView
+                            android:textColor="@color/quantum_black_text"
+                            android:textSize="16sp"
+                            android:text="@string/call"
+                            android:layout_marginBottom="6dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <ImageView
+                            android:layout_marginBottom="6dp"
+
+                            android:paddingRight="12dp"
+                            android:paddingLeft="6dp"
+                            android:id="@+id/call_driver_iv"
+                            android:src="@drawable/ic_call_black_24dp"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"/>
+                        <TextView
+                            android:id="@+id/customer_alright_button"
+                            android:layout_marginRight="12dp"
+                            android:textColor="@color/quantum_black_text"
+                            android:textSize="16sp"
+                            android:text="@string/alright"
+                            android:visibility="gone"
+                            android:layout_marginBottom="6dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
+            <androidx.cardview.widget.CardView
+
+                android:layout_margin="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="12dp"
+                android:layout_weight=".85"
+                android:id="@+id/customer_placeholder_card"
+                app:cardBackgroundColor="#e0e0e0"
+                android:layout_width="match_parent"
+                android:layout_height="0dp">
+
+
+                <LinearLayout
+                    android:padding="6dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_marginBottom="6dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:paddingLeft="8dp"
+                            android:layout_gravity="start"
+                            android:id="@+id/pro_pic_for_customer_home_page"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/profile"
+                            app:civ_border_color="#CB313131"
+                            app:civ_border_width="1dp"
+                            />
+                        <TextView
+                            android:id="@+id/name_for_customer_home_page"
+                            android:paddingLeft="16dp"
+                            android:textSize="18sp"
+                            android:textColor="@color/quantum_black_text"
+                            android:text="@string/hi_there"
+                            android:layout_gravity="center"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"/>
+
+
+
+                    </LinearLayout>
+
+
+
+                    <fragment
+                        android:id="@+id/autocomplete_fragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                        />
+                    <TextView
+                        android:id="@+id/customer_placeholder_text"
+                        android:paddingLeft="6dp"
+                        android:textSize="16sp"
+                        android:visibility="gone"
+                        android:autoSizeTextType="uniform"
+                        android:autoSizeMinTextSize="12sp"
+                        android:autoSizeMaxTextSize="20sp"
+                        android:autoSizeStepGranularity="2sp"
+                        android:text="@string/click_on_the_button_to_request_a_dryve_near_you_tap_again_to_cancel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+
+                </LinearLayout>
+
+
+            </androidx.cardview.widget.CardView>
+
+
             <LinearLayout
+                android:layout_weight=".15"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:layout_marginTop="2dp"
                 android:gravity="center"
                 android:weightSum="1"
                 android:orientation="horizontal"
@@ -94,16 +286,17 @@
                 android:layout_height="wrap_content">
 
                 <Button
+                    android:enabled="false"
                     android:id="@+id/find_drivers_button"
                     android:layout_weight=".80"
                     android:paddingRight="10dp"
                     android:paddingLeft="20dp"
                     android:drawableLeft="@drawable/ic_directions_car_black_24dp"
-                    android:textColor="#e8f5e9"
-                    android:background="@drawable/custom_button_2"
+                    android:textColor="#242424"
+                    android:background="@drawable/button_4_white"
                     android:layout_gravity="center"
-                    android:textSize="18sp"
-                    android:text="Find Dryvers"
+                    android:textSize="14sp"
+                    android:text="@string/select_destination_first"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"/>
 

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@drawable/dr_bg"
     android:layout_height="match_parent"
     tools:context=".SettingsActivity">
 
@@ -24,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:background="@drawable/custom_btn"
-            android:src="@drawable/ic_edit_black_24dp"
+            android:src="@drawable/settingtick"
            />
 
         <ImageButton
@@ -36,11 +37,25 @@
             android:layout_alignParentLeft="true"/>
     </RelativeLayout>
 
+    <TextView
+        android:textColor="@color/quantum_white_secondary_text"
+        android:id="@+id/textai"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/relativeLayout"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="24sp"
+        android:text="Account Information"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:layout_margin="20dp"
         android:id="@+id/profile_image"
         android:layout_width="150dp"
+        app:layout_constraintBottom_toTopOf="@id/setting_change_pic"
         android:layout_height="150dp"
         android:src="@drawable/profile"
         app:civ_border_color="#CB313131"
@@ -53,25 +68,25 @@
         android:id="@+id/setting_change_pic"
         android:textColor="#00c853"
         android:textSize="20sp"
-        android:layout_margin="12dp"
         app:layout_constraintTop_toBottomOf="@id/profile_image"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:text="Change Picture"
+        android:text="@string/change_picture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <EditText
-        android:textAlignment="center"
+        android:textColorHint="@color/quantum_black_secondary_text"
+        android:drawableRight="@drawable/ic_account_circle_black_24dp"
+        android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
         android:padding="12dp"
-        android:background="@drawable/custom_btn_3"
         android:layout_marginTop="30dp"
         android:id="@+id/setting_name"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/setting_change_pic"
-        android:hint="Enter Your Name Here"
+        android:hint="@string/enter_your_name_here"
         android:layout_marginRight="30dp"
         android:layout_marginLeft="30dp"
         android:layout_width="match_parent"
@@ -79,15 +94,16 @@
 
 
     <EditText
-        android:textAlignment="center"
+        android:textColorHint="@color/quantum_black_secondary_text"
+        android:drawableRight="@drawable/ic_phone_android_black_24dp"
+        android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
-        android:background="@drawable/custom_btn_3"
         android:layout_marginTop="10dp"
         android:id="@+id/setting_phone"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/setting_name"
-        android:hint="Enter Your Phone Number"
+        android:hint="@string/enter_your_phone_number"
         android:inputType="number"
         android:padding="12dp"
         android:layout_marginRight="30dp"
@@ -96,17 +112,18 @@
         android:layout_height="wrap_content"/>
 
     <EditText
-        android:textAlignment="center"
+        android:visibility="gone"
+        android:textColorHint="@color/quantum_black_secondary_text"
+        android:backgroundTint="#3D3D3D"
         android:textSize="20sp"
         android:padding="12dp"
-        android:background="@drawable/custom_btn_3"
         android:layout_marginTop="10dp"
         android:id="@+id/setting_car"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/setting_phone"
-        android:hint="Enter Your Car Name"
-        android:visibility="gone"
+        android:hint="@string/enter_your_car_name"
+        android:drawableRight="@drawable/carr"
         android:layout_marginRight="30dp"
         android:layout_marginLeft="30dp"
         android:layout_width="match_parent"
