@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuInflater;
@@ -70,6 +71,7 @@ import com.squareup.picasso.Picasso;
 import com.google.android.libraries.places.api.Places;
 
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -146,6 +148,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     private String sp_picUrl;
 
     Polyline polyline;
+    int count = 0;
 
 
     @Override
@@ -156,7 +159,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         setContentView(R.layout.activity_customer_map);
         ButterKnife.bind(this);
         findDriverButton = findViewById(R.id.find_drivers_button);
-        findDriverButton.setEnabled(false);
+        //findDriverButton.setEnabled(false);
         initPref();
 
         Places.initialize(getApplicationContext(), "AIzaSyDdICGOo49l6fecWuE1iazZgAXzAyWL8TA");
@@ -173,7 +176,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
                 findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
                 findDriverButton.setText("Find A Dryve");
-                whereTo = "No Billing Set";
+                whereTo = "API Billing Not Set";
                 hideSearchBar();
                 customer_placeholder_text.setVisibility(View.VISIBLE);
             }
@@ -183,11 +186,13 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             }
         });
 
+
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         customerDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Customer Requests");
         driversAvailableDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Drivers Available");
+        //customer listens when drivers around with this
         driverLocationRef = FirebaseDatabase.getInstance().getReference().child("Drivers Working");
 
 
@@ -199,7 +204,6 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-
 
         findDriverButton.setOnClickListener(view -> {
             //requestType true meaning user has already requested car
@@ -252,17 +256,24 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
 
             } else {
+
                 requestType = true;
                 GeoFire geoFire = new GeoFire(customerDatabaseRef);
-                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
+                        lastLocation.getLongitude()));
 
                 customerPickUpLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
                 pickUpMarker = mMap.addMarker(new MarkerOptions().position(customerPickUpLocation)
                         .title("My Location").icon(BitmapDescriptorFactory.fromResource(R.drawable.user)));
 
-                findDriverButton.setText("Getting Your Dryver...");
+               // findDriverButton.setText("Searching nearby dryvers..");
                 getClosestDrivers();
             }
+        });
+
+        call_driver_iv.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", driver_phone_text, null));
+            startActivity(intent);
         });
     }
 
@@ -312,6 +323,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 .commit();
     }
 
+    //iterative
     private void getClosestDrivers() {
         GeoFire geoFire = new GeoFire(driversAvailableDatabaseRef);
         geoQuery = geoFire.queryAtLocation(new GeoLocation
@@ -332,8 +344,9 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     driverMap.put("CustomerDestination", whereTo);
                     driverDatabaseRef.updateChildren(driverMap);
 
+                    count = 0;
                     gettingDriverLocation();
-                    findDriverButton.setText("Locating Dryvers..");
+                 //   findDriverButton.setText("Locating Dryvers..");
 
                 }
             }
@@ -364,11 +377,19 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
     private void gettingDriverLocation() {
+        //listens if a driver has accepted from DRIVER WORKING creation
         driverLocationRefListener = driverLocationRef.child(driverFoundId).child("l")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists() && requestType) {
+
+                            //to avoid creating-deleting customer requests everytime
+                            if(count==0){
+                                GeoFire geoFire = new GeoFire(customerDatabaseRef);
+                                geoFire.removeLocation(customerId);
+                                count++;
+                            }
 
                             List<Object> driverLocationMap = (List<Object>) dataSnapshot.getValue();
                             double lat = 0;
@@ -428,27 +449,49 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
                             // draw polyline
                             PolylineOptions line = new PolylineOptions();
-                            line.width(6);
+                            line.width(4);
                             line.color(Color.GREEN);
                             line.addAll(alLatLng);
                             polyline = mMap.addPolyline(line);
 
-                            float distance = location1.distanceTo(location2);
+                            float distance = location1.distanceTo(location2)/1000;
+                            DecimalFormat decimalFormat = new DecimalFormat("#0.00");
+                            decimalFormat.format(distance);
+
 
                             if (distance < 90) {
                                 polyline.remove();
                                 driver_distance_text.setText("Driver's arrived.");
                             } else {
-                                driver_distance_text.setText("Distance : "+String.valueOf(distance));
+                                driver_distance_text.setText("Distance : "+distance + "km");
                             }
 
                             driverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng)
                                     .title("Your Driver is Here").icon(BitmapDescriptorFactory
                                             .fromResource(R.drawable.dryver)));
 
+                        }else{
+                            //this block executes when driver cancels after accepting
+                            driver_found_card.setVisibility(View.GONE);
+                            placeholder_card.setVisibility(View.VISIBLE);
+                            customer_placeholder_text.setVisibility(View.VISIBLE);
+                            hideSearchBar();
+                            if(driverMarker!=null){
+                                driverMarker.remove();
+                            }
+                            if(polyline!=null){
+                                polyline.remove();
+                            }
+                            findDriverButton.setText("Finding nearby dryvers..");
+                            findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                            findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                            driverFound = false;
+                            GeoFire geoFire = new GeoFire(customerDatabaseRef);
+                            geoFire.setLocation(customerId, new GeoLocation(lastLocation.getLatitude(),
+                                    lastLocation.getLongitude()));
+
                         }
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -504,6 +547,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
 
@@ -576,7 +620,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         lastLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
     }
 
     @Override

@@ -109,9 +109,9 @@
                     />
 
                 <androidx.cardview.widget.CardView
-
-                    android:id="@+id/customer_found_card"
                     android:visibility="gone"
+                    android:id="@+id/customer_found_card"
+
                     app:cardCornerRadius="2dp"
                     app:cardElevation="12dp"
                     android:layout_gravity="bottom"
@@ -218,6 +218,7 @@
 <!--                                android:layout_height="wrap_content"/>-->
 
                             <ImageView
+                                android:visibility="gone"
                                 android:layout_marginBottom="6dp"
                                 android:layout_marginRight="8dp"
                                 android:paddingRight="12dp"
