@@ -176,20 +176,20 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-
+                findDriverButton.setEnabled(true);
+                findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
+                findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
+                findDriverButton.setText("Find A Dryve");
+                whereTo = "API Billing Not Set";
+                hideSearchBar();
+                customer_placeholder_text.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onError(Status status) {
             }
         });
-        findDriverButton.setEnabled(true);
-        findDriverButton.setBackgroundColor(Color.parseColor("#FF00C853"));
-        findDriverButton.setTextColor(Color.parseColor("#E8F5E9"));
-        findDriverButton.setText("Find A Dryve");
-        whereTo = "API Billing Not Set";
-        hideSearchBar();
-        customer_placeholder_text.setVisibility(View.VISIBLE);
+
 
 
         mAuth = FirebaseAuth.getInstance();
